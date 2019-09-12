@@ -1,0 +1,1110 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# ASI assessed exercise 2018/2019\n",
+    "Amyn KASSARA"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Initialization code"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import numpy as np\n",
+    "import seaborn as sns\n",
+    "import matplotlib.pyplot as plt\n",
+    "from scipy import stats \n",
+    "from pylab import meshgrid\n",
+    "from matplotlib import cm \n",
+    "import pandas as pd\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from scipy.sparse import csr_matrix, lil_matrix\n",
+    "from time import time\n",
+    "from sklearn.metrics import mean_squared_error, log_loss, confusion_matrix\n",
+    "from sklearn import preprocessing\n",
+    "from sklearn.metrics import accuracy_score\n",
+    "from scipy.stats import multivariate_normal\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Exercises  \n",
+    "\n",
+    " <b>Q1. Download and import the Santander dataset. The labels of the test data are not publicly available,so create your own test set by randomly choosing half of the instances in the original training set.</b>\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>To import the Santander Dataset we are going to use the built-in function pandas.read_csv that reads a comma-separated values (csv) file into DataFrame.</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Read the .csv file:\n",
+    "transactionDF = pd.read_csv('train.csv', error_bad_lines=False)\n",
+    "# Choose a sample from the dataframe:\n",
+    "Train, Test= train_test_split(transactionDF, random_state=42, test_size=.5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>ID_code</th>\n",
+       "      <th>target</th>\n",
+       "      <th>var_0</th>\n",
+       "      <th>var_1</th>\n",
+       "      <th>var_2</th>\n",
+       "      <th>var_3</th>\n",
+       "      <th>var_4</th>\n",
+       "      <th>var_5</th>\n",
+       "      <th>var_6</th>\n",
+       "      <th>var_7</th>\n",
+       "      <th>...</th>\n",
+       "      <th>var_190</th>\n",
+       "      <th>var_191</th>\n",
+       "      <th>var_192</th>\n",
+       "      <th>var_193</th>\n",
+       "      <th>var_194</th>\n",
+       "      <th>var_195</th>\n",
+       "      <th>var_196</th>\n",
+       "      <th>var_197</th>\n",
+       "      <th>var_198</th>\n",
+       "      <th>var_199</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>20237</th>\n",
+       "      <td>train_20237</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11.4978</td>\n",
+       "      <td>-3.0777</td>\n",
+       "      <td>11.9565</td>\n",
+       "      <td>8.8948</td>\n",
+       "      <td>11.2996</td>\n",
+       "      <td>-10.4822</td>\n",
+       "      <td>3.8270</td>\n",
+       "      <td>11.4380</td>\n",
+       "      <td>...</td>\n",
+       "      <td>-6.0965</td>\n",
+       "      <td>3.9164</td>\n",
+       "      <td>-0.4457</td>\n",
+       "      <td>-0.9721</td>\n",
+       "      <td>21.6714</td>\n",
+       "      <td>1.5506</td>\n",
+       "      <td>6.3634</td>\n",
+       "      <td>8.1350</td>\n",
+       "      <td>21.6712</td>\n",
+       "      <td>-8.5367</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>198821</th>\n",
+       "      <td>train_198821</td>\n",
+       "      <td>0</td>\n",
+       "      <td>6.7885</td>\n",
+       "      <td>0.7269</td>\n",
+       "      <td>5.8945</td>\n",
+       "      <td>5.4038</td>\n",
+       "      <td>9.9259</td>\n",
+       "      <td>-2.9944</td>\n",
+       "      <td>5.4108</td>\n",
+       "      <td>16.3829</td>\n",
+       "      <td>...</td>\n",
+       "      <td>6.1964</td>\n",
+       "      <td>11.6020</td>\n",
+       "      <td>3.5603</td>\n",
+       "      <td>0.6766</td>\n",
+       "      <td>20.0554</td>\n",
+       "      <td>-1.5801</td>\n",
+       "      <td>5.3351</td>\n",
+       "      <td>8.6182</td>\n",
+       "      <td>9.6734</td>\n",
+       "      <td>-13.4286</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>188009</th>\n",
+       "      <td>train_188009</td>\n",
+       "      <td>0</td>\n",
+       "      <td>8.6802</td>\n",
+       "      <td>3.5310</td>\n",
+       "      <td>7.9625</td>\n",
+       "      <td>7.6073</td>\n",
+       "      <td>11.0424</td>\n",
+       "      <td>5.7768</td>\n",
+       "      <td>4.3228</td>\n",
+       "      <td>20.5002</td>\n",
+       "      <td>...</td>\n",
+       "      <td>7.9154</td>\n",
+       "      <td>7.6972</td>\n",
+       "      <td>1.6893</td>\n",
+       "      <td>4.8253</td>\n",
+       "      <td>17.6450</td>\n",
+       "      <td>0.9720</td>\n",
+       "      <td>-1.3828</td>\n",
+       "      <td>7.3101</td>\n",
+       "      <td>13.2607</td>\n",
+       "      <td>-9.4329</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12214</th>\n",
+       "      <td>train_12214</td>\n",
+       "      <td>0</td>\n",
+       "      <td>13.1322</td>\n",
+       "      <td>-0.5355</td>\n",
+       "      <td>8.9295</td>\n",
+       "      <td>9.2934</td>\n",
+       "      <td>11.0048</td>\n",
+       "      <td>-1.6971</td>\n",
+       "      <td>5.3749</td>\n",
+       "      <td>14.7257</td>\n",
+       "      <td>...</td>\n",
+       "      <td>8.5705</td>\n",
+       "      <td>8.4554</td>\n",
+       "      <td>1.4635</td>\n",
+       "      <td>1.0137</td>\n",
+       "      <td>14.6109</td>\n",
+       "      <td>1.8852</td>\n",
+       "      <td>8.9966</td>\n",
+       "      <td>8.0651</td>\n",
+       "      <td>19.3677</td>\n",
+       "      <td>-14.6202</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>133939</th>\n",
+       "      <td>train_133939</td>\n",
+       "      <td>0</td>\n",
+       "      <td>10.8787</td>\n",
+       "      <td>-0.6815</td>\n",
+       "      <td>5.0000</td>\n",
+       "      <td>5.9295</td>\n",
+       "      <td>9.3202</td>\n",
+       "      <td>-3.5659</td>\n",
+       "      <td>3.5086</td>\n",
+       "      <td>18.0152</td>\n",
+       "      <td>...</td>\n",
+       "      <td>6.2816</td>\n",
+       "      <td>7.1930</td>\n",
+       "      <td>1.7058</td>\n",
+       "      <td>-2.6972</td>\n",
+       "      <td>21.1006</td>\n",
+       "      <td>0.9372</td>\n",
+       "      <td>-4.3809</td>\n",
+       "      <td>8.9797</td>\n",
+       "      <td>20.3274</td>\n",
+       "      <td>-19.3787</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5 rows × 202 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "             ID_code  target    var_0   var_1    var_2   var_3    var_4  \\\n",
+       "20237    train_20237       0  11.4978 -3.0777  11.9565  8.8948  11.2996   \n",
+       "198821  train_198821       0   6.7885  0.7269   5.8945  5.4038   9.9259   \n",
+       "188009  train_188009       0   8.6802  3.5310   7.9625  7.6073  11.0424   \n",
+       "12214    train_12214       0  13.1322 -0.5355   8.9295  9.2934  11.0048   \n",
+       "133939  train_133939       0  10.8787 -0.6815   5.0000  5.9295   9.3202   \n",
+       "\n",
+       "          var_5   var_6    var_7   ...     var_190  var_191  var_192  var_193  \\\n",
+       "20237  -10.4822  3.8270  11.4380   ...     -6.0965   3.9164  -0.4457  -0.9721   \n",
+       "198821  -2.9944  5.4108  16.3829   ...      6.1964  11.6020   3.5603   0.6766   \n",
+       "188009   5.7768  4.3228  20.5002   ...      7.9154   7.6972   1.6893   4.8253   \n",
+       "12214   -1.6971  5.3749  14.7257   ...      8.5705   8.4554   1.4635   1.0137   \n",
+       "133939  -3.5659  3.5086  18.0152   ...      6.2816   7.1930   1.7058  -2.6972   \n",
+       "\n",
+       "        var_194  var_195  var_196  var_197  var_198  var_199  \n",
+       "20237   21.6714   1.5506   6.3634   8.1350  21.6712  -8.5367  \n",
+       "198821  20.0554  -1.5801   5.3351   8.6182   9.6734 -13.4286  \n",
+       "188009  17.6450   0.9720  -1.3828   7.3101  13.2607  -9.4329  \n",
+       "12214   14.6109   1.8852   8.9966   8.0651  19.3677 -14.6202  \n",
+       "133939  21.1006   0.9372  -4.3809   8.9797  20.3274 -19.3787  \n",
+       "\n",
+       "[5 rows x 202 columns]"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Train.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q2. Comment on the distribution of class labels and the dimensionality of the input and how these may\n",
+    "affect the analysis.</b>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>The task of this exercice is to predict the value of target, let's identify the distribution of the values for this label.</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "#Target histogram of training data\n",
+    "plt.hist(Train.target)\n",
+    "plt.xlabel('Target')\n",
+    "plt.ylabel('Occurrence')\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0    90040\n",
+       "1     9960\n",
+       "Name: target, dtype: int64"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Train['target'].value_counts()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Percentage of zeros in training data 90.04\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"Percentage of zeros in training data\",100*90040/(9960+90040))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>The previous figure shows the label distribution in training set is extremely unbalanced, as we have way more zeros (90040) than ones (9960).  The problem with this kind of unbalanced distribution is that is could clead to the Accuracy paradox: Even a very simple model, that always gives 0 as output, could be extremely accurate. Therefore, evaluating the quality of our model could be problematic.</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'> The Input dimensionality is the total number of columns mines two, as there is one output and one attribute containing the ID_code.</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Input Dimensionality is 200\n",
+      "Number of Data points in training set: 100000\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Input Dimensionality\n",
+    "print(\"Input Dimensionality is\", len(Train.columns)-2)\n",
+    "#Number of data points in training set\n",
+    "print(\"Number of Data points in training set:\", len(Train))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>Each input will be represented as a vector of 201 elements.\n",
+    "We have 100000 samples for training, and 100000 samples for testing.\n",
+    "As a general rule of thumb, size of training dataset should be at-least about 10x it's dimension and should be independent of the model used. Thus this empirical \"rule\" is respected .</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Bayesian Linear Regression"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.a. Implement Bayesian linear regression (you should already have an\n",
+    "implementation from the lab sessions).</b>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "class BayesianLinearRegression(object):\n",
+    "    #The first method serves to initiate a BayesianLinearRegression model.\n",
+    "    def __init__(self, n_samples=10):\n",
+    "        self.N_SAMPLES = n_samples\n",
+    "        print(\"Created new instance of Bayesian Linear Regression\")\n",
+    "\n",
+    "    #The second method serves to fit the input to the corresponding shape.    \n",
+    "    def _X(data):\n",
+    "        data = data.reshape(-1, np.prod(data[0].shape))\n",
+    "        X = np.ones((len(data), 1))\n",
+    "        X = np.hstack((X, data))\n",
+    "        return X\n",
+    "    \n",
+    "    \n",
+    "    #The third BayesianLinearRegression.fit()  serves to train the model,    \n",
+    "    def fit(self, data, labels):\n",
+    "        #We keep track of the training time\n",
+    "        t0 = time()\n",
+    "        \n",
+    "        labels=labels.T   \n",
+    "        X = BayesianLinearRegression._X(data)\n",
+    "        X_T = X.T\n",
+    "        X_T_X = X_T.dot(X)\n",
+    "        shape = X.shape[1]\n",
+    "        self._inv = np.linalg.inv(X_T_X)\n",
+    "        \n",
+    "        #Here we compute the parameters given by the maximum likelihood estimation\n",
+    "        self.w_hat = self._inv.dot(X_T).dot(labels)\n",
+    "        epsilon = labels - X.dot(self.w_hat)\n",
+    "        self.sig_hat = epsilon.T.dot(epsilon)/len(labels)\n",
+    "        \n",
+    "        #S is the covariance matrix of the prior Gaussian distribution, we will analyze this choice later\n",
+    "        S = np.eye(X.shape[1])\n",
+    "        S_inv = np.linalg.inv(S)\n",
+    "        X_T_t = X_T.dot(labels)\n",
+    "        \n",
+    "        #Here we compute the parameters of the posterior distribution\n",
+    "        self.sig_post = np.linalg.inv(X_T_X/self.sig_hat + S_inv) \n",
+    "        self.mu_post = self.sig_post.dot(X_T_t)/self.sig_hat\n",
+    "        t1 = time()\n",
+    "        print(\"Built model in {:.2f} seconds\".format(t1-t0))\n",
+    "        return\n",
+    "    \n",
+    "     # bayesian linear regression\n",
+    "    def predict_bayes(self, data):\n",
+    "        t0 = time()\n",
+    "        X = BayesianLinearRegression._X(data)\n",
+    "        \n",
+    "        # Compute N_SAMPLES predictions and then average\n",
+    "        t_pred = np.zeros((self.N_SAMPLES, len(X)))\n",
+    "        for i in np.arange(self.N_SAMPLES):\n",
+    "            w_sample = np.random.multivariate_normal(self.mu_post.T.ravel(), self.sig_post ).T\n",
+    "            t_pred[i] = X.dot(w_sample).reshape(-1)\n",
+    "        t1 = time()\n",
+    "        print(\"Classification time [bayesian linear regression] {:.2f} seconds\".format(t1-t0))\n",
+    "        return np.mean(t_pred, axis=0)\n",
+    "    \n",
+    "    def validate(self, correct, raw):\n",
+    "        \n",
+    "        mse = mean_squared_error(correct, raw)\n",
+    "        \n",
+    "        return mse"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.b.Discuss how can you select the (hyper-)parameters for the Gaussian prior</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>The parameters of the Gaussian prior are its mean and variance. In our implementation, we set the mean to zero and the variance to the identity matrix.Since we have a lot of data, the choice of the prior won't have a great impact. However  we can explain this choice with the following points:\n",
+    "\n",
+    "1) We set the mean of the prior distribution to zero as our data is difficult ot interpret. The prior indicates our prior belief in the variables, here we don't know anything about the variables, by using a zero mean prior we preserve the potential symetrie of the model and we let the data speak.\n",
+    "\n",
+    "2) For the covariance matrix, we choose a simple identity matrix for the same reason. We prefer to use a simple model that is symetric, in order not to import a potenial asymetrie in the variables.\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.c.Write code that calculates the N-th order polynomial transformation of the\n",
+    "input data. For simplicity, do not consider polynomials of more than one variable\n",
+    "(such as x2y), but raise each input variable to the power of N individually.\n",
+    "Consider N=1, 2, 3, and 6.</b> "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Here we increase the dimension of the input data X by adding simple polynomial transformations of order 2,3 \n",
+    "#and 6\n",
+    "def Poly_transform(X,N):\n",
+    "    X_new = np.column_stack((X, np.power(X,N)))\n",
+    "    return X_new\n",
+    "            "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.d.Describe any additional pre-processing that you suggest for this data</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "1) The first preprocessing step that we could thing of is the normalization of the data. Normalization is the process of scaling individual samples to have unit norm. This process can be useful when we plan to use a quadratic form such as the dot-product or any other kernel to quantify the similarity of any pair of samples.\n",
+    "\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def normalize(X,norm):\n",
+    "    X_normalized = preprocessing.normalize(X, norm)\n",
+    "    return X_normalized"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "2) We also can remove the outliers. To remove outliers, we will delete the rows that contain an absurd value in at least one column. By absurd here, we mean a value that has a zscore greater than 3. The intuition behind Z-score is to describe any data point by finding their relationship with the Standard Deviation and Mean of the group of data points. To calculate Z-score we re-scale and center the data and look for data points which are too far from zero. Thus a vector that has a high zcore will be far from zero, and will be considered as an outlier.\n",
+    "\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Percentage of lost data points: 5.5155\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Firt we create the dataframe of attributes numerical values:\n",
+    "numerical_val = transactionDF.select_dtypes(include=[np.number])\n",
+    "numerical_val= numerical_val.drop([\"target\"],axis=1)\n",
+    "#Then we only keep rows where there is no attribute which zscore is smaller than 3\n",
+    "n=len(transactionDF)\n",
+    "transactionDF =transactionDF[(np.abs(stats.zscore(numerical_val)) < 3).all(axis=1)]\n",
+    "print(\"Percentage of lost data points:\", 100*(n-len(transactionDF))/n)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.e.Treat class labels as continuous and apply regression to the training data.\n",
+    "Also, calculate the posterior variance of the weights</b> "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Created new instance of Bayesian Linear Regression\n",
+      "Built model in 1.61 seconds\n",
+      "Classification time [bayesian linear regression] 0.88 seconds\n"
+     ]
+    }
+   ],
+   "source": [
+    "X_train = Train.drop([\"target\",\"ID_code\"],axis=1)\n",
+    "T_train = Train[\"target\"]\n",
+    "X_test = Test.drop([\"target\",\"ID_code\"],axis=1)\n",
+    "T_test = Test[\"target\"]\n",
+    "\n",
+    "x_train = lil_matrix(X_train).toarray()\n",
+    "x_train= normalize(x_train,'l2')\n",
+    "x_train_N= Poly_transform(x_train,3) \n",
+    "\n",
+    "\n",
+    "\n",
+    "t_train = lil_matrix(T_train).toarray()\n",
+    "\n",
+    "x_test = lil_matrix(X_test).toarray()\n",
+    "x_test= normalize(x_test,'l2')\n",
+    "x_test_N= Poly_transform(x_test,3) \n",
+    "\n",
+    "\n",
+    "model = BayesianLinearRegression()\n",
+    "model.fit(x_train_N, t_train)\n",
+    "predicted_blr = model.predict_bayes(x_test_N)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Posterior variance of the weights is [[ 3.65683355e-03 -2.91174922e-04  3.16539529e-05 ...  3.10765214e-04\n",
+      "   1.64828862e-03  3.04159418e-03]\n",
+      " [-2.91174922e-04  2.32550642e-03 -1.11927063e-06 ...  4.20182536e-07\n",
+      "   1.55605971e-05 -3.39761585e-04]\n",
+      " [ 3.16539529e-05 -1.11927063e-06  1.18236603e-03 ... -1.42755564e-06\n",
+      "   1.58396233e-05  2.70563030e-05]\n",
+      " ...\n",
+      " [ 3.10765214e-04  4.20182536e-07 -1.42755564e-06 ...  9.99847347e-01\n",
+      "  -1.51841402e-05 -1.92120686e-05]\n",
+      " [ 1.64828862e-03  1.55605971e-05  1.58396233e-05 ... -1.51841402e-05\n",
+      "   9.77240946e-01 -5.32000064e-05]\n",
+      " [ 3.04159418e-03 -3.39761585e-04  2.70563030e-05 ... -1.92120686e-05\n",
+      "  -5.32000064e-05  7.29201504e-01]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"Posterior variance of the weights is\", model.sig_post)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.f.Suggest a way to discretize predictions and display the confusion matrix on the\n",
+    "test data and report accuracy</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "To discretize the predictions the most intuitive idea  would be to round the result to the closest integer.\n",
+    "\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "labels =(predicted_blr > 0.5).astype(np.int) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Bayesian linear regression accuracy: 90.15%\n"
+     ]
+    },
+    {
+     "data": {
+      "image/png": "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sx9LaloigpbLLgvAjBkzmDFjBsz1/3PHjqvRaf0NaBZf/evv+r9cy0977MNPfrwHf+hzddnj/uMfj7Pn3qUZ+T333pt//P0xADbZdDPatG0LwMYbb8LYsR8u1HmpumQPXhFxaO4xtWRZc511efmlF5k8eRKffTaN554ZwrixY+dos/dPDuC9d99hvz125IgD9+HoE0+jWbNmvPDc04z64D36DriFP/91ICNef42X//VCWeN+PHEi7VfoAED7FTow6eOJs/c99cTjHLrfnpz1q19y8lkXLL6TlZTVzJkz6dF9L7bfritbbd2VjTfuXNZxTw99ivdGjuTm2+/kjrvu5f/+71WGvzCsrGMnTphAhw4rAtChw4pMnDjxK20G3X0n2273vfJPRFWrMdZ4nQ9c1wjjagnxzTXXZv8DD+W043rRomVL1ll3/dmzWbO88NxQ1llvfa7ocy2jP3if047vxXc22Yzhzz3N8Oee4cif9QBgWm0to95/j4037cIxh/+U6dOnM622lk+mTOYXB+8LwM+PPoHvbrVNvTVt221Htu22Iy//6wWu69eHy6/pX5mTl1RRzZs3546772XKlCmceNwvefPNEay3XqcGj3vm6aE88/RQ9tunNHNVW1vLyJHvsnmX79Jz/32Z/sUX1NbWMnnyZHp03wuA4086mW223a7Bvp9/7lkG3X0n1994y6KdnKpCRYJXRLw8v13ASvUc1wvoBXDJlX3o+bOfV6A6LQl227M7u+3ZHYABf7yKFVac84/Fww/cywEHHUZE0HH1NVh51Y68/+47JOCAgw9n9x/v+5U++wwofai99OIw/vbAvZx69oVz7F9u+eWZ8NF42q/QgQkfjafdcst/pY+NN+3CmFG9mTzpY9q2W24xna2k3Nq0acN3t9iSp58aUlbwSilx2BG92LfH/l/Zd/NtA4HSGq/B9wzi1xdfOsf+5du3Z/z4cXTosCLjx49j+eX/99ky4o3XOf/c3vT9U3/a+ZkiKnepcSXgYGCPefxMmN9BKaV+KaUuKaUuhq7q9vHE0h+DsR+O4aknHmeHnX84x/4VV1qZF194bnbb90eOZJWOq9Fly648fP8gptXWAvDRuLGz+2rI1tt2428PDgbgbw8Oput22wMw6v33SCkB8OYb/8f06TNo07bdop+kpKwmTpzIlClTAPjss8949pmnWXOttcs6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\n",
+      "text/plain": [
+       "<Figure size 720x360 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "conf = confusion_matrix(T_test, labels)\n",
+    "fig, ax = plt.subplots(figsize=(10, 5))\n",
+    "\n",
+    "\n",
+    "print(\"Bayesian linear regression accuracy: {:.2f}%\"\n",
+    "      .format(100*accuracy_score(T_test, labels)))\n",
+    "\n",
+    "\n",
+    "sns.heatmap(conf, cbar=False, cmap='Blues', annot=True, ax=ax)\n",
+    "ax.set_title('Confusion matrix for order 1')\n",
+    "ax.set(xlabel='Predicted label', ylabel='True label')\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q3.g. Discuss the performance, compare it against a classifier that outputs random\n",
+    "class labels.</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "In our dataset, we have have 90% of the data with a label equal to zero. Thus we create a classifier that predict a zero 90% of the time.\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Random classification accuracy: 82.19%\n",
+      "Constant classification accuracy: 89.86%\n"
+     ]
+    }
+   ],
+   "source": [
+    "random_labels= np.random.choice(2,len(T_test),p=[0.9,0.1])\n",
+    "print(\"Random classification accuracy: {:.2f}%\"\n",
+    "      .format(100*accuracy_score(T_test, random_labels)))\n",
+    "print(\"Constant classification accuracy: {:.2f}%\"\n",
+    "      .format(100*accuracy_score(T_test, np.array([0 for k in range(len(T_test))]))))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "The encountered problem is the Accuracy Paradox that we saw in the first question. A random or even constant classifier is capable of  achieving an accuracy that is very close to the one obtained with a Bayesian Linear Regression. Therefore, the model used in this question doesn't fit to the data. Thus we could doubt of the initial hypothesis of a Bayesian Linear Regression which is that there is a linear relation between the input and the output of the classifier.\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Logistic Regression"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Read the .csv file:\n",
+    "transactionDF = pd.read_csv('train.csv', error_bad_lines=False)\n",
+    "# Choose a sample from the dataframe:\n",
+    "Train, Test= train_test_split(transactionDF, random_state=42, test_size=.5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_train = Train.drop([\"target\",\"ID_code\"],axis=1)\n",
+    "T_train = Train[\"target\"]\n",
+    "X_test = Test.drop([\"target\",\"ID_code\"],axis=1)\n",
+    "T_test = Test[\"target\"]\n",
+    "\n",
+    "x_train = lil_matrix(X_train).toarray()\n",
+    "x_train= normalize(x_train,'l2')\n",
+    "\n",
+    "\n",
+    "t_train = np.array(T_train)\n",
+    "\n",
+    "x_test = lil_matrix(X_test).toarray()\n",
+    "x_test= normalize(x_test,'l2')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q4.a. The goal is to implement a logistic regression classifier that optimizes for the\n",
+    "Maximum a Posteriori (MAP) estimate; assume a Gaussian prior on the parameters.\n",
+    "As a first step, write a function that calculates the gradient of the joint likelihood.</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "The objective function of our optimization algorithm would be the product of the Gaussian prior and the joint likelihood. To make the computation more simple we introduce the logarithm, thus the objective function will be the following:\n",
+    "\n",
+    "$$g(w)= log(p(w|\\sigma^2))+ \\Sigma_{n=1}^N log(p(t_n|x_n,w)) $$\n",
+    "\n",
+    "Therefore, if we consider that the prior is a Gaussian and that the model is a logistic regression, the objective function will be:\n",
+    "$$g(w)=-\\frac{D}{2}log(2\\pi)- \\frac{1}{2\\sigma}w^{T}w + \\Sigma_{n=1}^N -log(1+exp(-t_{n}w^{T}x_n))$$\n",
+    "\n",
+    "Where $D$ is the dimensionality of the problem ($D=200$), and $\\sigma$ the parameter of the considered covariance diagonal matrix . \n",
+    "\n",
+    "$\\frac{D}{2}log(2\\pi)$ is a constant parameter. Therefore we can remove it for the optimisation.\n",
+    "\n",
+    "The gradient of the objective is:\n",
+    "$$ \\nabla g_{w}(w)= \\Sigma_{n=1}^N (1-\\sigma(t_{n}w^{T}x_{n}))t_{n}x_{n} - \\frac{w}{\\sigma}$$ \n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "D=200\n",
+    "sigma=10\n",
+    "cov_matrix= sigma*np.eye(D+1)\n",
+    "\n",
+    "def sigmoid(x):\n",
+    "    return 1/(1+np.exp(-x))\n",
+    "\n",
+    "def g(w,X,t):\n",
+    "    G= 0\n",
+    "    for n in range(np.shape(X)[0]):\n",
+    "        G=G - np.log(1+ np.exp(-t[n]*w.dot(X[n,:])))\n",
+    "    \n",
+    "    return G-0.5* w.dot(w.T)/sigma\n",
+    "\n",
+    "def nabla_g(w,X,t):\n",
+    "    s = np.dot(t-sigmoid(X.dot(w.T)).T , X)\n",
+    "    return -w/sigma +s\n",
+    "    \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q4.b. Write a simple gradient descend algorithm that uses the gradients calculated\n",
+    "by the function of previous question to converge to the MAP estimate.</b> "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#This function transforms the input to the corresponding shape to add the bias\n",
+    "def transform_input(x):\n",
+    "    one = np.ones((x.shape[0],1))\n",
+    "    return np.concatenate((one,x) , axis=1)\n",
+    "\n",
+    "def gradient_descent( X,t,w, learning_rate , epochs):\n",
+    "    \n",
+    "    c = 1\n",
+    "    w_hat = w\n",
+    "    while c <= epochs:\n",
+    "        gradient = nabla_g(w_hat , X , t)\n",
+    "        w_hat = w_hat + learning_rate*gradient\n",
+    "        c=c+1\n",
+    "        \n",
+    "    return w_hat"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_train= transform_input(x_train)\n",
+    "t_train= np.array(t_train)\n",
+    "\n",
+    "#Gradient descent algorithm\n",
+    "learning_rate= 0.0001\n",
+    "n_epochs= 1000\n",
+    "w = np.random.rand(201)\n",
+    "w_hat = gradient_descent(X_train,t_train,w,learning_rate,n_epochs)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q4.c. Comment on the convexity of the problem; do you need multiple restarts in order\n",
+    "to obtain a solution sufficiently close to the global optimum?</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "Let's check the convexity of our problem by computing the Hessian of the objective function $g$:\n",
+    "\n",
+    "$$g(w)=- \\frac{1}{2}w^{T}w + \\Sigma_{n=1}^N -log(1+exp(-t_{n}w^{T}x_n))$$\n",
+    "\n",
+    "Therefore the Hessian is:\n",
+    "\n",
+    "$$\\nabla^2 g_{w}(w)= \\frac{d^{2}g}{dwdw^T}(w)$$\n",
+    "\n",
+    "Then:\n",
+    "$$\\nabla^2 g_{w}(w)= -\\Sigma_{n=1}^N \\sigma(w^{T}x_{n})(1-\\sigma(t_{n}w^{T}x_{n}))x_{n}x^{T}_n +I$$\n",
+    "\n",
+    "Which in matrix form could be written:\n",
+    "$$\\nabla^2 g_{w}(w)= -(XDX^T + I)$$\n",
+    "\n",
+    "Where:\n",
+    "$$ D=diag(\\sigma(w^{T}x_{n})(1-\\sigma(t_{n}w^{T}x_{n})))_{1\\leq n \\leq N}$$\n",
+    "\n",
+    "For every $w$, the matrix $D$ is positive-definite because its eigenvalues are positive as $\\sigma$ is a function which values are between $0$ and $1$. Then the matrix $XDX^T$ is also positive definite. $I$ is positive definite.\n",
+    "\n",
+    "Therefore $XDX^T + I$ is definite postive. Therefore for every $w$, the Hessian is negative-definite, which means that the objective function is concave. Therefore it admits a unique global maximum and the gradient descent algorithm always converge to this maximum, for any initial $w$. Thus there is no need for multiple restarts.\n",
+    "\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q4.d. Report the confusion matrix and classification accuracy on the test data.\n",
+    "Discuss logistic regression performance with respect to the performance of\n",
+    "Bayesian linear regression</b> "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_test= transform_input(x_test)\n",
+    "#Output\n",
+    "t_test = np.array(T_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "predicted_log= sigmoid(X_test.dot(w_hat.T))\n",
+    "labels = (predicted_log > 0.5).astype(np.int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Logistic regression accuracy: 90.03%\n"
+     ]
+    },
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 720x360 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "conf = confusion_matrix(t_test, labels)\n",
+    "fig, ax = plt.subplots(figsize=(10, 5))\n",
+    "\n",
+    "\n",
+    "print(\"Logistic regression accuracy: {:.2f}%\"\n",
+    "      .format(100*accuracy_score(T_test, labels)))\n",
+    "\n",
+    "\n",
+    "sns.heatmap(conf, cbar=False, cmap='Blues', annot=True, ax=ax)\n",
+    "ax.set_title('Confusion matrix')\n",
+    "ax.set(xlabel='Predicted label', ylabel='True label')\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "Therefore, the results using the Logistic Regression don't seem to be accurate as the accuracy of this model is smaller than the previous one, which was a simpler linear model. This could be due to the  gradient descent algorithm that could converge too slowly to a maximum in case of a bad choice of  learning rate or a bad choice of initial point. To decrease the influence of these hyperparameters, we could improve the gradient descent algorithm, by changing the learning rate at each iteration with a backtracking line search for example. \n",
+    "\n",
+    "However, there is no substantial problem in the hyposthesis that we made, in contrary of the Bayesian linear model. The challenge remains in the optimization part, which is purely mathematic, and where we could have better results using more complex algorithms like the Newton method.\n",
+    "\n",
+    "\n",
+    "\n",
+    "<div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " <b>Q4.e. Laplace approximation is an efficient way to obtain an approximate\n",
+    "posterior for logistic regression. Describe the steps of this approach. What is the form obtained?</b> "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class='alert alert-success'>\n",
+    "\n",
+    "We can only evaluate the posterior distribution up to a constant: we can evaluate the joint probability $p(t|X,w, \\sigma^2)p(w|\\sigma^2)$, but not the normalizer $p(t|X, \\sigma^2)$. What we could do is to match the shape of the posterior using joint probability, and then the approximation can be used to approximate  $p(t|X, \\sigma^2)$. The Laplace approximation sets the mode of the Gaussian approximation to the mode of the posterior distribution, and matches the curvature of the log probability density at that location. \n",
+    "\n",
+    "To do this, we compute first the optimal $w^*$ that maximizes the joint likelihood, like we did in the MAP estimate. Then we compute the Hessian Matrix of the objective function ( which expression was given in Q4.c) to determine the properties of the Gaussian approximation as the Hessian tells us how sharply the distribution is peaked in different directions.\n",
+    "\n",
+    "After this, we would have an approximation of the posterior probability, and as we already know the expression of the joint probability, it would be possible  to find an approximation of the normalizer, which would be:\n",
+    "$$p(t|X, \\sigma^2)= p(t|X,w, \\sigma^2)p(w|\\sigma^2)|2\\pi H^{-1}|^{\\frac{1}{2}} $$\n",
+    "\n",
+    "Where $H$ is the Hessian Matrix.\n",
+    "\n",
+    "<div>"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
